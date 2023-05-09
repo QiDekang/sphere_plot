@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import pandas as pd
+import math
 
 
 # 转换为球面坐标的函数
@@ -212,8 +214,9 @@ def plot_equator(ax, business_district_num, day_num, gap_size_ratio, min_latitud
     ## 赤道图例
     for i in range(0, end_len):
 
-        colour_id = i % 7
-        colour = colour_list[colour_id]
+        #colour_id = i % 7
+        #colour = colour_list[colour_id]
+        colour = colour_list[i]
 
         for j in range(0, day_num):
             bar_id = i * day_num + j
@@ -306,6 +309,19 @@ def plot_one_block(r, u, v, colour):
     ax.grid(False)
     #ax.set_box_aspect([1,1,1])
     
+def plot_legend(ax, business_district_num, legend_name_list, color_list):
+
+
+    legend_num = int(business_district_num / 2)
+
+    legend_list = range(0, legend_num)
+
+    legend_lines = [mpl.lines.Line2D([0], [0], linestyle="-", linewidth = 8, c=color_list[index]) for index in legend_list]
+    legend_labels = [legend_name_list[index] for index in legend_list]
+    # bbox_to_anchor, (x, y, width, height), 矩形区域的起点，长宽。
+    ax.legend(legend_lines, legend_labels, borderpad = 1.5, ncol = math.ceil(legend_num / 3), fontsize=11, loc='lower center', bbox_to_anchor=(0.14/10, 1.9/10, 1, 1.8/10))
+
+
 
 ####################
 if __name__ == '__main__':
@@ -314,7 +330,7 @@ if __name__ == '__main__':
     ## 半径
     r = 30
     ## 商圈数量
-    business_district_num = 32
+    business_district_num = 33
     ## 数据天数
     day_num = 7
     ## 下半球柱状图数量（月数）
@@ -349,7 +365,9 @@ if __name__ == '__main__':
 
 
     ## 颜色
-    colour_list = ['#DC2626', '#EA580C', '#EAB308', '#16A34A', '#0891B2', '#2563EB', '#9333EA']
+    #colour_list = ['#DC2626', '#EA580C', '#EAB308', '#16A34A', '#0891B2', '#2563EB', '#9333EA']
+    colour_list = ['#F87171', '#FB923C', '#FACC15', '#4ADE80', '#60A5FA', '#818CF8', '#C084FC', '#DC2626', '#EA580C', '#EAB308', '#16A34A', '#0891B2', '#2563EB', '#9333EA', '#BE185D', '#C2410C']
+    
     colour_upper = '#3B82F6'
     colour_upper_dark = '#1E40AF'
     colour_lower = '#F43F5E'
@@ -367,27 +385,40 @@ if __name__ == '__main__':
     is_lower_first_difference_colour = False
     # 上半球，第一个柱子代表多少
     #first_represented_num = 80
-
-    # random data
-    ## data，柱状图对应的值，二维数组, business_district_num * day_num
+    
+    # 随机数据
+    '''
     upper_data = pd.DataFrame(np.random.randint(0,100,size=(business_district_num, day_num)))
     lower_data_1 = get_type_data(0, business_district_num, time_num)
     lower_data_2 = get_type_data(1, business_district_num, time_num)
     lower_data_3 = get_type_data(2, business_district_num, time_num)
     lower_data = pd.concat([lower_data_1, lower_data_2, lower_data_3])
+    legend_name_list = ['西单','三里屯','天坛','通州万达','朝阳公园','野生动物园','动物园','王府井','环球影城','中关村','国贸','五道口','崇文门','太阳宫','望京','亚运村','酒仙桥','双井','大望路','朝阳门外','十八里店','和平里','建国门外','建国门','东直门','前门','复兴门','菜市口','苏州桥','天通苑','亦庄','通州梨园','通州爱琴海']
     '''
-    # real data
-    save_floder = 'D:/数字生活/算法/商圈洞察场景/客群洞察/data/sphere_data/'
-    upper_data = pd.read_csv(save_floder + 'customer_flow_wangfujing.csv', index_col=False)
-    lower_data = pd.read_csv(save_floder + 'lower_data.csv', index_col=False)
-    '''
+
+    # 真实数据
+    ## data，柱状图对应的值，二维数组, business_district_num * day_num
+    root_read_floder = 'D:/数字生活/算法/商圈洞察场景/客群洞察/data/sphere_data/20230503/reset_id/'
+    upper_data = pd.read_csv(root_read_floder + 'upper_data_reset.csv', index_col=False, encoding='gbk')
+    lower_data = pd.read_csv(root_read_floder + 'lower_data_reset.csv', index_col=False, encoding='gbk')
+    legend_data = pd.read_csv(root_read_floder + 'legend_data.csv', index_col=False, encoding='gbk')
+    legend_name_list = legend_data['short_name'].values
+
+
     print(upper_data)
     print(lower_data)
+    print(legend_name_list)
 
-    
+
+    ## 支持中文
+    mpl.rcParams['font.family'] = 'KaiTi'
+    #mpl.rcParams['font.family'] = 'SimSun'
+    #mpl.rcParams['font.size'] = '15'
+    plt.rcParams['axes.unicode_minus'] = False   # 步骤二（解决坐标轴负数的负号显示问题）
+
     # 画图
     # 画图
-    fig = plt.figure(figsize=(20, 20))
+    fig = plt.figure(figsize=(15, 15))
     ax = fig.add_subplot(projection='3d')
     ax.elev = elev
     ax.azim = azim
@@ -401,6 +432,9 @@ if __name__ == '__main__':
     plot_equator(ax, business_district_num, day_num, gap_size_ratio_equator, min_latitude_ratio, colour_list, is_half, start_id)
     ## 画下半球
     plot_lower_hemispheres(ax, lower_data, business_district_num, type_num, time_num, r, gap_size_ratio, min_latitude_ratio, max_latitude_ratio, gap_size_ratio_vertical, colour_lower_list, is_half, start_id, is_lower_first_difference_colour)
+    ## 画图例
+    plot_legend(ax, business_district_num, legend_name_list, colour_list)
+
     plt.axis('off')  #  关闭所有坐标轴
     plt.tight_layout()
     plt.show()
